@@ -19,6 +19,23 @@ define('IOP_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('IOP_LOG_DIR', WP_CONTENT_DIR . '/iop-logs/');
 define('IOP_BACKUP_DIR', WP_CONTENT_DIR . '/iop-backups/');
 
+// MANUAL CLASS LOADER - PUT AT TOP OF FILE
+$manual_load = [
+    'class-image-optimizer.php',
+    'class-optimizer-admin.php',
+    'class-optimizer-ajax.php',
+    'class-optimizer-cron.php'
+];
+
+foreach ($manual_load as $file) {
+    $path = IOP_PLUGIN_DIR . 'includes/' . $file;
+    if (file_exists($path)) {
+        require_once $path;
+    } else {
+        wp_die("Missing required file: {$file}");
+    }
+}
+
 // Debugging setup
 if (!function_exists('iop_debug_log')) {
     function iop_debug_log($message) {
