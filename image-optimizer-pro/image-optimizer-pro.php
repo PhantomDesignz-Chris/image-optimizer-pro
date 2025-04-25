@@ -76,6 +76,13 @@ require_once $autoloader_path;
 
 // Initialize the plugin
 function iop_init() {
+
+    load_plugin_textdomain(
+        'image-optimizer-pro',
+        false,
+        dirname(plugin_basename(__FILE__)) . '/languages'
+    );
+    
     try {
         // Debug class existence
         if (!class_exists('Image_Optimizer_Pro\Image_Optimizer')) {
