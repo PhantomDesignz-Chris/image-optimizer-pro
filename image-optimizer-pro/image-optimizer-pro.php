@@ -178,5 +178,25 @@ add_action('admin_notices', function() {
     echo '</pre></div>';
 });
 
+// TEMPORARY DEBUG - REMOVE AFTER FIXING
+add_action('admin_init', function() {
+    if (!class_exists('Image_Optimizer_Pro\Image_Optimizer')) {
+        error_log("[IOP CRITICAL] Class still not loaded after autoloader");
+        
+        // Manual load test
+        $path = IOP_PLUGIN_DIR . 'includes/class-image-optimizer.php';
+        if (file_exists($path)) {
+            require_once $path;
+            error_log("[IOP] Manual load result: " . 
+                (class_exists('Image_Optimizer_Pro\Image_Optimizer') ? 'SUCCESS' : 'FAILED'));
+            
+            // Check file contents
+            $contents = file_get_contents($path);
+            error_log("[IOP] First 50 chars: " . substr($contents, 0, 50));
+        } else {
+            error_log("[IOP] File not found at: {$path}");
+        }
+    }
+});
 // Initialize the plugin
 add_action('plugins_loaded', 'iop_init');
