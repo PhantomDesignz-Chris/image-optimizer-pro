@@ -13,7 +13,112 @@ class Optimizer_Ajax {
         add_action('wp_ajax_iop_delete_backup', [$this, 'delete_backup']);
         add_action('wp_ajax_iop_get_stats', [$this, 'get_stats']);
     }
+    public function get_image_stats() {
+    check_ajax_referer('iop_nonce', 'nonce');
     
+    global $wpdb;
+    
+    $total = $wpdb->get_var(
+        "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
+    );
+    
+    $optimized = $wpdb->get_var(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE meta_key = 'iop_optimized' AND meta_value = '1'"
+    );
+    
+    $backups = $wpdb->get_var(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}iop_optimizations WHERE backup_exists = 1"
+    );
+    
+    wp_send_json_success([
+        'total' => (int)$total,
+        'optimized' => (int)$optimized,
+        'unoptimized' => (int)$total - (int)$optimized,
+        'backups' => (int)$backups
+    ]);
+}
+
+public function process_batch() {
+    check_ajax_referer('iop_nonce', 'nonce');
+    
+    $batch = isset($_POST['batch']) ? absint($_POST['batch']) : 0;
+    $batch_size = isset($_POST['batch_size']) ? absint($_POST['batch_size']) : 5;
+    
+    $args = [
+        'post_type' => 'attachment',
+        'post_mime_type' => ['image/jpeg', 'image/png'],
+        'post_status' => 'inherit',
+        'posts_per_page' => $batch_size,
+        'offset' => $batch * $batch_size,
+        'fields' => 'ids',
+        'meta_query' => [
+            [
+                'key' => 'iop_optimized',
+                'compare' => 'NOT EXISTS'
+            ]
+        ]
+    ];
+    
+    $attachments = get_posts($args);
+    $total_unoptimized = $this->count_unoptimized_images();
+    
+    if (empty($attachments)) {
+        wp_send_json_success([
+            'processed' => $batch * $batch_size,
+            'total' => $total_unoptimized,
+            'complete' => true,
+            'savings' => '0B',
+            'current_file' => ''
+        ]);
+    }
+    
+    $optimizer = new Image_Optimizer();
+    $processed = 0;
+    $savings = 0;
+    $last_file = '';
+    
+    foreach ($attachments as $attachment_id) {
+        $result = $optimizer->optimize_upload($attachment_id);
+        if ($result) {
+            $processed++;
+            $last_file = get_the_title($attachment_id);
+            
+            // Get savings for this image
+            $original = get_post_meta($attachment_id, 'iop_original_size', true);
+            $optimized = get_post_meta($attachment_id, 'iop_optimized_size', true);
+            if ($original && $optimized) {
+                $savings += ($original - $optimized);
+            }
+        }
+    }
+    
+    wp_send_json_success([
+        'processed' => ($batch * $batch_size) + $processed,
+        'total' => $total_unoptimized,
+        'complete' => (($batch * $batch_size) + $processed) >= $total_unoptimized,
+        'savings' => size_format($savings, 2),
+        'current_file' => $last_file
+    ]);
+}
+
+private function count_unoptimized_images() {
+    $args = [
+        'post_type' => 'attachment',
+        'post_mime_type' => ['image/jpeg', 'image/png'],
+        'post_status' => 'inherit',
+        'fields' => 'ids',
+        'posts_per_page' => -1,
+        'meta_query' => [
+            [
+                'key' => 'iop_optimized',
+                'compare' => 'NOT EXISTS'
+            ]
+        ]
+    ];
+    
+    $query = new \WP_Query($args);
+    return $query->post_count;
+}
     public function optimize_single() {
         check_ajax_referer('iop_nonce', 'nonce');
         
