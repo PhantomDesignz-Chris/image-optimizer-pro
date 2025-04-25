@@ -1,0 +1,17 @@
+errrors
+
+Autoloader Debug:
+Expected Path: /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php
+Actual Path: /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php
+File Contents Start:
+<?php
+namespace Image_Optimizer_Pro;
+
+class Image_Optimizer {
+    private $compression_level = 80;
+    private $max_width = 1920;
+    private $max_height = 1080;
+    private $strip_metadata = t
+...
+
+Image Optimizer Pro Error: Image_Optimizer class not found. Check file naming and namespace.
