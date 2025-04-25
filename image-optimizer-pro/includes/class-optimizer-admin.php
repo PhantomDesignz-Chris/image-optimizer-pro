@@ -85,58 +85,39 @@ class Optimizer_Admin {
     }
 
 public function bulk_optimize_page() {
-    // Debug: Check if we reach this point
-    error_log('Bulk optimize page loaded');
-    
     if (!current_user_can('upload_files')) {
         wp_die(__('You do not have sufficient permissions to access this page.', 'image-optimizer-pro'));
     }
 
-    // Debug: Check if classes load
-    error_log('Optimizer_Stats class exists: ' . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No'));
-    
     try {
+        // Verify class exists
+        if (!class_exists('Image_Optimizer_Pro\Optimizer_Stats')) {
+            throw new Exception('Optimizer_Stats class not loaded. Check autoloader.');
+        }
+
         $stats_handler = new Optimizer_Stats();
-        
-        // Debug: Test stats retrieval
-        $test_stats = $stats_handler->get_total_stats();
-        error_log('Test stats: ' . print_r($test_stats, true));
-        
         $total_stats = $stats_handler->get_total_stats();
         $recent_optimizations = $stats_handler->get_recent_optimizations(10);
-        
-        // Debug: Check template path
+
+        // Verify template exists
         $template_path = IOP_PLUGIN_DIR . 'templates/bulk-optimize.php';
-        error_log('Template path: ' . $template_path);
-        error_log('Template exists: ' . (file_exists($template_path) ? 'Yes' : 'No'));
-        
         if (!file_exists($template_path)) {
-            throw new Exception('Template file missing at: ' . $template_path);
+            throw new Exception('Template file missing: ' . $template_path);
         }
-        
-        // Debug: Before requiring template
-        error_log('About to require template');
-        
+
         require $template_path;
-        
-        // Debug: After requiring template
-        error_log('Template loaded successfully');
-        
+
     } catch (Exception $e) {
-        // Debug: Catch any errors
-        error_log('Bulk optimize error: ' . $e->getMessage());
-        
         echo '<div class="error"><p>';
-        echo '<strong>Error:</strong> ' . esc_html($e->getMessage());
+        echo '<strong>' . __('Error', 'image-optimizer-pro') . ':</strong> ' . esc_html($e->getMessage());
         echo '</p></div>';
-        
-        // Display debug info for admins
+
+        // Debug info for admins
         if (current_user_can('manage_options')) {
-            echo '<pre>';
-            echo 'Debug Information:\n';
-            echo 'Plugin Path: ' . IOP_PLUGIN_DIR . '\n';
-            echo 'Template Path: ' . $template_path . '\n';
-            echo 'Class Exists: ' . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No') . '\n';
+            echo '<pre>Debug Info:';
+            echo "\nClass exists: " . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No');
+            echo "\nTemplate path: " . $template_path;
+            echo "\nTemplate exists: " . (file_exists($template_path) ? 'Yes' : 'No');
             echo '</pre>';
         }
     }
