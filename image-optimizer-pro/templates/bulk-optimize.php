@@ -1,48 +1,51 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
-error_log('Bulk optimize template loaded');
-error_log('Stats handler exists: ' . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No'));
-$test_stats = new Image_Optimizer_Pro\Optimizer_Stats();
-error_log('Stats query test: ' . print_r($test_stats->get_total_stats(), true));
+$stats_handler = new Image_Optimizer_Pro\Optimizer_Stats();
+$total_stats = $stats_handler->get_total_stats();
+$recent_optimizations = $stats_handler->get_recent_optimizations(10);
 ?>
 
 <div class="wrap">
     <h1><?php _e('Bulk Image Optimizer', 'image-optimizer-pro'); ?></h1>
     
-    <?php if (!empty($_GET['bulk_optimized'])) : ?>
-        <div class="notice notice-success">
-            <p><?php printf(__('%d images were optimized.', 'image-optimizer-pro'), intval($_GET['bulk_optimized'])); ?></p>
+    <?php if (isset($_GET['bulk_optimized'])) : ?>
+        <div class="notice notice-success is-dismissible">
+            <p><?php 
+                printf(
+                    _n(
+                        '%d image processed successfully.',
+                        '%d images processed successfully.',
+                        intval($_GET['bulk_optimized']),
+                        'image-optimizer-pro'
+                    ),
+                    intval($_GET['bulk_optimized'])
+                ); 
+            ?></p>
         </div>
     <?php endif; ?>
     
     <div class="iop-bulk-container">
-        <!-- Stats Summary Card -->
+        <!-- Stats Summary -->
         <div class="iop-card">
             <h2><?php _e('Optimization Summary', 'image-optimizer-pro'); ?></h2>
-            <div id="iop-stats-container">
-                <?php
-                $stats_handler = new Image_Optimizer_Pro\Optimizer_Stats();
-                $total_stats = $stats_handler->get_total_stats();
-                ?>
-                <div class="iop-stats-grid">
-                    <div class="iop-stat-item">
-                        <div class="iop-stat-value"><?php echo number_format($total_stats['total_images']); ?></div>
-                        <div class="iop-stat-label"><?php _e('Total Images', 'image-optimizer-pro'); ?></div>
-                    </div>
-                    <div class="iop-stat-item">
-                        <div class="iop-stat-value"><?php echo size_format($total_stats['total_savings'], 2); ?></div>
-                        <div class="iop-stat-label"><?php _e('Total Savings', 'image-optimizer-pro'); ?></div>
-                    </div>
-                    <div class="iop-stat-item">
-                        <div class="iop-stat-value"><?php echo number_format($total_stats['savings_percent'], 2); ?>%</div>
-                        <div class="iop-stat-label"><?php _e('Average Reduction', 'image-optimizer-pro'); ?></div>
-                    </div>
+            <div class="iop-stats-grid">
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo number_format($total_stats['total_images']); ?></div>
+                    <div class="iop-stat-label"><?php _e('Total Images', 'image-optimizer-pro'); ?></div>
+                </div>
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo size_format($total_stats['total_savings'], 2); ?></div>
+                    <div class="iop-stat-label"><?php _e('Total Savings', 'image-optimizer-pro'); ?></div>
+                </div>
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo number_format($total_stats['savings_percent'], 2); ?>%</div>
+                    <div class="iop-stat-label"><?php _e('Average Reduction', 'image-optimizer-pro'); ?></div>
                 </div>
             </div>
         </div>
 
-        <!-- Bulk Actions Card -->
+        <!-- Bulk Actions -->
         <div class="iop-card">
             <h2><?php _e('Bulk Actions', 'image-optimizer-pro'); ?></h2>
             <div class="iop-bulk-actions">
@@ -71,17 +74,14 @@ error_log('Stats query test: ' . print_r($test_stats->get_total_stats(), true));
             </div>
         </div>
 
-        <!-- Optimization Log -->
+        <!-- Recent Optimizations -->
         <div class="iop-card">
             <h2><?php _e('Recent Optimizations', 'image-optimizer-pro'); ?></h2>
-            <?php
-            $recent_optimizations = $stats_handler->get_recent_optimizations(10);
-            if (!empty($recent_optimizations)) :
-            ?>
+            <?php if (!empty($recent_optimizations)) : ?>
                 <table class="wp-list-table widefat fixed striped">
                     <thead>
                         <tr>
-                            <th><?php _e('Image', 'image-optimizer-pro'); ?></th>
+                            <th><?php _e('Filename', 'image-optimizer-pro'); ?></th>
                             <th><?php _e('Original Size', 'image-optimizer-pro'); ?></th>
                             <th><?php _e('Optimized Size', 'image-optimizer-pro'); ?></th>
                             <th><?php _e('Savings', 'image-optimizer-pro'); ?></th>
