@@ -5,26 +5,14 @@ spl_autoload_register(function ($class) {
         return;
     }
 
-    // Convert to file path
-    $file = __DIR__ . '/' . str_replace(
-        ['Image_Optimizer_Pro\\', '_'],
-        ['', '-'],
-        strtolower($class)
-    ) . '.php';
+    // Convert class name to file path
+    $relative_class = substr($class, strlen('Image_Optimizer_Pro\\'));
+    $file = __DIR__ . '/' . str_replace('_', '-', strtolower($relative_class)) . '.php';
 
-    // Verify the exact path we're trying to load
-    if (!file_exists($file)) {
-        error_log("[IOP] Class file not found: {$file}");
-        return;
+    // Verify the file exists
+    if (file_exists($file)) {
+        require $file;
+    } else {
+        error_log("[Image Optimizer] Class file not found: {$file}");
     }
-
-    // Verify the file contains the expected class
-    $contents = file_get_contents($file);
-    $class_name = substr($class, strrpos($class, '\\') + 1);
-    if (!preg_match('/class\s+' . $class_name . '\b/', $contents)) {
-        error_log("[IOP] Class {$class_name} not found in file: {$file}");
-        return;
-    }
-
-    require $file;
 });
