@@ -159,5 +159,24 @@ add_action('admin_notices', function() {
     echo '</pre></div>';
 });
 
+// Debug autoloading
+add_action('admin_notices', function() {
+    if (!current_user_can('manage_options')) return;
+    
+    $expected_path = IOP_PLUGIN_DIR . 'includes/class-image-optimizer.php';
+    $actual_path = realpath($expected_path);
+    
+    echo '<div class="notice notice-error"><pre>';
+    echo "Autoloader Debug:\n";
+    echo "Expected Path: {$expected_path}\n";
+    echo "Actual Path: " . ($actual_path ?: 'NOT FOUND') . "\n";
+    echo "File Contents Start:\n";
+    
+    if ($actual_path) {
+        echo htmlspecialchars(file_get_contents($actual_path, false, null, 0, 200)) . "\n...";
+    }
+    echo '</pre></div>';
+});
+
 // Initialize the plugin
 add_action('plugins_loaded', 'iop_init');
