@@ -1,3 +1,12 @@
+<?php
+if (!defined('ABSPATH')) exit;
+
+error_log('Bulk optimize template loaded');
+error_log('Stats handler exists: ' . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No'));
+$test_stats = new Image_Optimizer_Pro\Optimizer_Stats();
+error_log('Stats query test: ' . print_r($test_stats->get_total_stats(), true));
+?>
+
 <div class="wrap">
     <h1><?php _e('Bulk Image Optimizer', 'image-optimizer-pro'); ?></h1>
     
