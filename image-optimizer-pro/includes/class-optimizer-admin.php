@@ -239,28 +239,128 @@ class Optimizer_Admin {
         return $actions;
     }
     
-    public function register_settings() {
-        register_setting('iop_settings_group', 'iop_settings');
-        
-        // General settings section
-        add_settings_section(
-            'iop_general_settings',
-            __('General Settings', 'image-optimizer-pro'),
-            [$this, 'general_settings_section'],
-            'image-optimizer-pro'
-        );
-        
-        // Compression settings
-        add_settings_field(
-            'iop_compression_level',
-            __('Compression Level', 'image-optimizer-pro'),
-            [$this, 'compression_level_field'],
-            'image-optimizer-pro',
-            'iop_general_settings'
-        );
-        
-        // Add all other settings fields...
-    }
+public function register_settings() {
+    register_setting('iop_settings_group', 'iop_settings');
+
+    // General Settings Section
+    add_settings_section(
+        'iop_general_settings',
+        __('General Settings', 'image-optimizer-pro'),
+        [$this, 'general_settings_section'],
+        'image-optimizer-pro'
+    );
+
+    // Compression Level
+    add_settings_field(
+        'iop_compression_level',
+        __('Compression Level', 'image-optimizer-pro'),
+        [$this, 'compression_level_field'],
+        'image-optimizer-pro',
+        'iop_general_settings'
+    );
+
+    // Image Resizing
+    add_settings_field(
+        'iop_resize_large_images',
+        __('Resize Large Images', 'image-optimizer-pro'),
+        [$this, 'resize_field'],
+        'image-optimizer-pro',
+        'iop_general_settings'
+    );
+
+    // EXIF Metadata
+    add_settings_field(
+        'iop_strip_metadata',
+        __('EXIF Metadata', 'image-optimizer-pro'),
+        [$this, 'metadata_field'],
+        'image-optimizer-pro',
+        'iop_general_settings'
+    );
+
+    // Format Conversion
+    add_settings_field(
+        'iop_convert_format',
+        __('Format Conversion', 'image-optimizer-pro'),
+        [$this, 'format_field'],
+        'image-optimizer-pro',
+        'iop_general_settings'
+    );
+
+    // Backup Settings
+    add_settings_field(
+        'iop_backup_originals',
+        __('Backup Originals', 'image-optimizer-pro'),
+        [$this, 'backup_field'],
+        'image-optimizer-pro',
+        'iop_general_settings'
+    );
+
+    // Advanced Settings Section
+    add_settings_section(
+        'iop_advanced_settings',
+        __('Advanced Settings', 'image-optimizer-pro'),
+        [$this, 'advanced_settings_section'],
+        'image-optimizer-pro'
+    );
+
+    // Optimization Mode
+    add_settings_field(
+        'iop_optimization_mode',
+        __('Optimization Mode', 'image-optimizer-pro'),
+        [$this, 'optimization_mode_field'],
+        'image-optimizer-pro',
+        'iop_advanced_settings'
+    );
+}
+
+// Add all the corresponding field methods:
+public function resize_field() {
+    $options = get_option('iop_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="iop_settings[resize_large]" <?php checked($options['resize_large'] ?? true); ?>>
+        <?php _e('Resize images larger than:', 'image-optimizer-pro'); ?>
+    </label>
+    <div style="margin-top: 10px;">
+        <input type="number" name="iop_settings[max_width]" value="<?php echo esc_attr($options['max_width'] ?? 1920); ?>" style="width: 80px;"> ×
+        <input type="number" name="iop_settings[max_height]" value="<?php echo esc_attr($options['max_height'] ?? 1080); ?>" style="width: 80px;"> px
+    </div>
+    <?php
+}
+
+public function metadata_field() {
+    $options = get_option('iop_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="iop_settings[strip_metadata]" <?php checked($options['strip_metadata'] ?? true); ?>>
+        <?php _e('Remove EXIF metadata (camera info, GPS location, etc.)', 'image-optimizer-pro'); ?>
+    </label>
+    <?php
+}
+
+public function format_field() {
+    $options = get_option('iop_settings');
+    $current = $options['convert_to'] ?? 'original';
+    ?>
+    <select name="iop_settings[convert_to]">
+        <option value="original" <?php selected($current, 'original'); ?>><?php _e('Keep original format', 'image-optimizer-pro'); ?></option>
+        <option value="webp" <?php selected($current, 'webp'); ?>><?php _e('Convert to WebP', 'image-optimizer-pro'); ?></option>
+        <?php if (function_exists('imageavif')) : ?>
+            <option value="avif" <?php selected($current, 'avif'); ?>><?php _e('Convert to AVIF', 'image-optimizer-pro'); ?></option>
+        <?php endif; ?>
+    </select>
+    <?php
+}
+
+public function backup_field() {
+    $options = get_option('iop_settings');
+    ?>
+    <label>
+        <input type="checkbox" name="iop_settings[backup_originals]" <?php checked($options['backup_originals'] ?? true); ?>>
+        <?php _e('Keep original images as backup', 'image-optimizer-pro'); ?>
+    </label>
+    <?php
+}
     
     public function general_settings_section() {
         echo '<p>' . __('Configure how Image Optimizer Pro processes your images.', 'image-optimizer-pro') . '</p>';
