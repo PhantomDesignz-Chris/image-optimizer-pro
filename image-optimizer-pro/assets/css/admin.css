@@ -1,3 +1,100 @@
+/* Bulk Optimization Styles */
+.iop-bulk-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.iop-stats-card, .iop-bulk-actions {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+}
+
+.iop-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.iop-stat-item {
+    background: #f6f7f7;
+    padding: 15px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.iop-stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #2271b1;
+}
+
+.iop-stat-label {
+    color: #646970;
+    font-size: 13px;
+}
+
+.iop-bulk-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.iop-bulk-card {
+    background: #f6f7f7;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.iop-progress-bar {
+    height: 20px;
+    background: #f0f0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.iop-progress-fill {
+    height: 100%;
+    background: #2271b1;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.iop-report-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+}
+
+.iop-report-label {
+    font-weight: 600;
+}
+
+.iop-optimization-log {
+    background: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.04);
+    margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .iop-bulk-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .iop-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .iop-settings-container {
     display: flex;
     gap: 20px;
