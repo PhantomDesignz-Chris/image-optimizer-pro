@@ -1,79 +1,96 @@
 jQuery(document).ready(function($) {
-    // Bulk optimization handler
-    $('#iop-start-bulk').on('click', function(e) {
-        e.preventDefault();
-        startBulkOptimization(0);
+    // Initialize bulk optimization
+    let isOptimizing = false;
+    let currentBatch = 0;
+    const batchSize = 5;
+    
+    // Refresh image stats
+    function refreshStats() {
+        $.get(ajaxurl, {
+            action: 'iop_get_image_stats',
+            nonce: iop_vars.nonce
+        }, function(response) {
+            if (response.success) {
+                $('#iop-total-images').text(response.data.total);
+                $('#iop-optimized-count').text(response.data.optimized);
+                $('#iop-unoptimized-count').text(response.data.unoptimized);
+                $('#iop-backup-count').text(response.data.backups);
+            }
+        });
+    }
+    
+    // Start bulk optimization
+    $('#iop-start-bulk').on('click', function() {
+        if (isOptimizing) return;
+        
+        isOptimizing = true;
+        currentBatch = 0;
+        $('#iop-bulk-progress').show();
+        $('#iop-pause-bulk').show();
+        $(this).prop('disabled', true);
+        
+        processBatch();
     });
     
-    // Restore all handler
-    $('#iop-restore-all').on('click', function(e) {
-        e.preventDefault();
-        if (confirm(iop_vars.confirm_restore)) {
-            restoreAllImages();
-        }
-    });
-    
-    function startBulkOptimization(offset) {
-        var $button = $('#iop-start-bulk');
-        var $progress = $('#iop-bulk-progress');
-        var $progressFill = $('.iop-progress-fill');
-        var $progressText = $('.iop-progress-text');
+    // Process a batch of images
+    function processBatch() {
+        if (!isOptimizing) return;
         
-        $button.prop('disabled', true);
-        $progress.show();
-        
-        $.ajax({
-            url: iop_vars.ajax_url,
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                action: 'iop_bulk_optimize',
-                nonce: iop_vars.nonce,
-                offset: offset
-            },
-            success: function(response) {
-                if (response.data.complete) {
-                    $progressText.text(response.data.message);
-                    $button.prop('disabled', false);
-                    updateStatsSummary();
-                    return;
-                }
-                
+        $.post(ajaxurl, {
+            action: 'iop_process_batch',
+            nonce: iop_vars.nonce,
+            batch: currentBatch,
+            batch_size: batchSize
+        }, function(response) {
+            if (response.success) {
                 // Update progress
-                var percent = Math.round((offset + response.data.processed) / response.data.total * 100);
-                $progressFill.css('width', percent + '%');
-                $progressText.text(
-                    iop_vars.optimizing + ' ' + 
-                    (offset + response.data.processed) + '/' + response.data.total + ' - ' + 
-                    response.data.total_savings + ' ' + iop_vars.saved
+                const percent = Math.round((response.data.processed / response.data.total) * 100);
+                $('.iop-progress-fill').css('width', percent + '%');
+                $('.iop-progress-text').html(
+                    response.data.processed + '/' + response.data.total + ' ' + 
+                    iop_vars.images_processed + ' (' + percent + '%)'
+                );
+                $('.iop-progress-details').html(
+                    iop_vars.saved + ': ' + response.data.savings + '<br>' +
+                    iop_vars.current_image + ': ' + response.data.current_file
                 );
                 
-                // Process next batch
-                startBulkOptimization(response.data.next_offset);
-            },
-            error: function() {
-                $progressText.text(iop_vars.error);
-                $button.prop('disabled', false);
+                // Refresh stats
+                refreshStats();
+                
+                // Process next batch or complete
+                if (response.data.complete) {
+                    optimizationComplete();
+                } else {
+                    currentBatch++;
+                    setTimeout(processBatch, 500); // Brief pause between batches
+                }
+            } else {
+                alert(iop_vars.error + ': ' + response.data.message);
+                optimizationComplete();
             }
+        }).fail(function() {
+            alert(iop_vars.error);
+            optimizationComplete();
         });
     }
     
-    function restoreAllImages() {
-        // Similar implementation for restoring all images
+    // Complete optimization
+    function optimizationComplete() {
+        isOptimizing = false;
+        $('#iop-start-bulk').prop('disabled', false);
+        $('#iop-pause-bulk').hide();
+        refreshStats();
     }
     
-    function updateStatsSummary() {
-        $.get({
-            url: iop_vars.ajax_url,
-            data: {
-                action: 'iop_get_stats',
-                nonce: iop_vars.nonce
-            },
-            success: function(response) {
-                $('#iop-stats-container').text(response.data.html);
-            }
-        });
-    }
+    // Pause optimization
+    $('#iop-pause-bulk').on('click', function() {
+        isOptimizing = false;
+        $(this).hide();
+        $('#iop-start-bulk').show().prop('disabled', false);
+    });
     
-    // Other JS functions for the plugin
+    // Refresh stats on page load
+    refreshStats();
+    $('#iop-refresh-stats').on('click', refreshStats);
 });
