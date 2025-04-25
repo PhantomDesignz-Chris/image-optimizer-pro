@@ -19,63 +19,145 @@ define('IOP_PLUGIN_BASENAME', plugin_basename(__FILE__));
 define('IOP_LOG_DIR', WP_CONTENT_DIR . '/iop-logs/');
 define('IOP_BACKUP_DIR', WP_CONTENT_DIR . '/iop-backups/');
 
-// Check for required PHP version
-if (version_compare(PHP_VERSION, '7.0', '<')) {
-    add_action('admin_notices', 'iop_php_version_notice');
+// Debugging setup
+if (!function_exists('iop_debug_log')) {
+    function iop_debug_log($message) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[Image Optimizer Pro] ' . print_r($message, true));
+        }
+    }
+}
+
+// Check PHP version
+if (version_compare(PHP_VERSION, '7.0.0', '<')) {
+    add_action('admin_notices', function() {
+        echo '<div class="error"><p>';
+        printf(
+            __('Image Optimizer Pro requires PHP 7.0 or higher. Your server is running PHP %s. Please upgrade PHP.', 'image-optimizer-pro'),
+            PHP_VERSION
+        );
+        echo '</p></div>';
+    });
     return;
 }
 
-function iop_php_version_notice() {
-    echo '<div class="error"><p>';
-    printf(
-        __('Image Optimizer Pro requires PHP 7.0 or higher. Your server is running PHP %s. Please upgrade PHP.', 'image-optimizer-pro'),
-        PHP_VERSION
-    );
-    echo '</p></div>';
+// Load the autoloader
+$autoloader_path = IOP_PLUGIN_DIR . 'includes/autoloader.php';
+if (!file_exists($autoloader_path)) {
+    add_action('admin_notices', function() use ($autoloader_path) {
+        echo '<div class="error"><p>';
+        printf(
+            __('Image Optimizer Pro could not find the autoloader at %s', 'image-optimizer-pro'),
+            esc_html($autoloader_path)
+        );
+        echo '</p></div>';
+    });
+    return;
 }
 
-// Autoload classes
-require_once IOP_PLUGIN_DIR . 'includes/autoloader.php';
+require_once $autoloader_path;
 
 // Initialize the plugin
 function iop_init() {
-    // First require the autoloader
-    require_once IOP_PLUGIN_DIR . 'includes/autoloader.php';
-    
     try {
-        // Verify class exists before using it
+        // Debug class existence
         if (!class_exists('Image_Optimizer_Pro\Image_Optimizer')) {
-            throw new Exception('Image_Optimizer class could not be loaded');
+            throw new RuntimeException(
+                'Image_Optimizer class not found. Check file naming and namespace.'
+            );
         }
 
-        // Rest of your initialization code...
+        // Check for required image libraries
+        $missing_extensions = [];
         if (!extension_loaded('imagick') && !extension_loaded('gd')) {
-            add_action('admin_notices', 'iop_image_lib_notice');
-            return;
+            $missing_extensions[] = 'Imagick or GD';
         }
         
-        wp_mkdir_p(IOP_LOG_DIR);
-        wp_mkdir_p(IOP_BACKUP_DIR);
-        
+        if (!function_exists('wp_get_image_editor')) {
+            $missing_extensions[] = 'WP_Image_Editor';
+        }
+
+        if (!empty($missing_extensions)) {
+            throw new RuntimeException(
+                'Missing required extensions: ' . implode(', ', $missing_extensions)
+            );
+        }
+
+        // Create necessary directories
+        $directories = [
+            IOP_LOG_DIR => __('Log directory', 'image-optimizer-pro'),
+            IOP_BACKUP_DIR => __('Backup directory', 'image-optimizer-pro')
+        ];
+
+        foreach ($directories as $dir => $description) {
+            if (!wp_mkdir_p($dir)) {
+                throw new RuntimeException(
+                    sprintf(__('Could not create %s: %s', 'image-optimizer-pro'), 
+                    $description, 
+                    $dir
+                )
+                );
+            }
+            
+            if (!is_writable($dir)) {
+                throw new RuntimeException(
+                    sprintf(__('%s is not writable: %s', 'image-optimizer-pro'),
+                    $description,
+                    $dir
+                )
+                );
+            }
+        }
+
+        // Initialize main components
         new Image_Optimizer_Pro\Image_Optimizer();
         new Image_Optimizer_Pro\Optimizer_Admin();
         new Image_Optimizer_Pro\Optimizer_Ajax();
         new Image_Optimizer_Pro\Optimizer_Cron();
-        
-        register_activation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'activate']);
-        register_deactivation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'deactivate']);
-        
+
     } catch (Exception $e) {
         add_action('admin_notices', function() use ($e) {
-            echo '<div class="error"><p>Image Optimizer Pro Error: ' 
-                . esc_html($e->getMessage()) . '</p></div>';
+            echo '<div class="error"><p>';
+            echo '<strong>' . __('Image Optimizer Pro Error', 'image-optimizer-pro') . ':</strong> ';
+            echo esc_html($e->getMessage());
+            echo '</p></div>';
+            
+            iop_debug_log($e->getMessage());
+            iop_debug_log('Trace: ' . $e->getTraceAsString());
         });
+        
+        return;
     }
 }
-add_action('plugins_loaded', 'iop_init');
 
-function iop_image_lib_notice() {
-    echo '<div class="error"><p>';
-    _e('Image Optimizer Pro requires either the Imagick or GD PHP extension to be installed. Please contact your hosting provider to install one of these extensions.', 'image-optimizer-pro');
-    echo '</p></div>';
-}
+// Register activation/deactivation hooks
+register_activation_hook(__FILE__, function() {
+    include_once IOP_PLUGIN_DIR . 'includes/class-optimizer-admin.php';
+    Image_Optimizer_Pro\Optimizer_Admin::activate();
+});
+
+register_deactivation_hook(__FILE__, function() {
+    include_once IOP_PLUGIN_DIR . 'includes/class-optimizer-admin.php';
+    Image_Optimizer_Pro\Optimizer_Admin::deactivate();
+});
+
+// Temporary debug output - remove in production
+add_action('admin_notices', function() {
+    if (!current_user_can('manage_options')) return;
+    
+    $debug_info = [
+        'Autoloader Path' => IOP_PLUGIN_DIR . 'includes/autoloader.php',
+        'Class File Exists' => file_exists(IOP_PLUGIN_DIR . 'includes/class-image-optimizer.php') ? 'Yes' : 'No',
+        'Class Loadable' => class_exists('Image_Optimizer_Pro\Image_Optimizer') ? 'Yes' : 'No',
+        'PHP Version' => PHP_VERSION,
+        'Imagick' => extension_loaded('imagick') ? 'Installed' : 'Not Installed',
+        'GD' => extension_loaded('gd') ? 'Installed' : 'Not Installed'
+    ];
+    
+    echo '<div class="notice notice-info"><pre>';
+    print_r($debug_info);
+    echo '</pre></div>';
+});
+
+// Initialize the plugin
+add_action('plugins_loaded', 'iop_init');
