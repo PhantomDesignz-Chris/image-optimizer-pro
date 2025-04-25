@@ -6,41 +6,42 @@ class Optimizer_Stats {
         add_action('admin_init', [$this, 'export_stats']);
     }
     
-    public function get_total_stats() {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'iop_optimizations';
-        
-        $stats = $wpdb->get_row("
-            SELECT 
-                COUNT(*) as total_images,
-                SUM(original_size) as total_original_size,
-                SUM(optimized_size) as total_optimized_size,
-                SUM(original_size - optimized_size) as total_savings
-            FROM $table_name
-        ");
-        
-        return [
-            'total_images' => $stats->total_images ?: 0,
-            'total_original' => $stats->total_original_size ?: 0,
-            'total_optimized' => $stats->total_optimized_size ?: 0,
-            'total_savings' => $stats->total_savings ?: 0,
-            'savings_percent' => $stats->total_original_size ? 
-                round(($stats->total_savings / $stats->total_original_size) * 100, 2) : 0
-        ];
-    }
+public function get_total_stats() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'iop_optimizations';
     
-    public function get_recent_optimizations($limit = 10) {
-        global $wpdb;
-        $table_name = $wpdb->prefix . 'iop_optimizations';
-        
-        return $wpdb->get_results("
-            SELECT o.*, p.post_title as filename
-            FROM $table_name o
-            LEFT JOIN {$wpdb->posts} p ON o.attachment_id = p.ID
-            ORDER BY o.optimized_date DESC
-            LIMIT $limit
-        ");
-    }
+    $stats = $wpdb->get_row("
+        SELECT 
+            COUNT(*) as total_images,
+            SUM(original_size) as total_original_size,
+            SUM(optimized_size) as total_optimized_size,
+            SUM(original_size - optimized_size) as total_savings
+        FROM $table_name
+    ");
+    
+    return [
+        'total_images' => $stats->total_images ?: 0,
+        'total_original' => $stats->total_original_size ?: 0,
+        'total_optimized' => $stats->total_optimized_size ?: 0,
+        'total_savings' => $stats->total_savings ?: 0,
+        'savings_percent' => $stats->total_original_size ? 
+            round(($stats->total_savings / $stats->total_original_size) * 100, 2) : 0
+    ];
+}
+
+public function get_recent_optimizations($limit = 10) {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'iop_optimizations';
+    
+    return $wpdb->get_results($wpdb->prepare("
+        SELECT o.*, p.post_title as filename
+        FROM $table_name o
+        LEFT JOIN {$wpdb->posts} p ON o.attachment_id = p.ID
+        ORDER BY o.optimized_date DESC
+        LIMIT %d
+    ", $limit));
+}
+
     
     public function export_stats() {
         if (!isset($_GET['iop_export_stats']) || !current_user_can('manage_options')) {
