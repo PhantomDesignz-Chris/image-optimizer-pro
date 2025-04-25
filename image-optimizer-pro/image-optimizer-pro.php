@@ -39,31 +39,39 @@ require_once IOP_PLUGIN_DIR . 'includes/autoloader.php';
 
 // Initialize the plugin
 function iop_init() {
-    // Check if Imagick or GD is installed
-    if (!extension_loaded('imagick') && !extension_loaded('gd')) {
-        add_action('admin_notices', 'iop_image_lib_notice');
-        return;
-    }
+    // First require the autoloader
+    require_once IOP_PLUGIN_DIR . 'includes/autoloader.php';
     
-    // Create necessary directories
-    if (!file_exists(IOP_LOG_DIR)) {
+    try {
+        // Verify class exists before using it
+        if (!class_exists('Image_Optimizer_Pro\Image_Optimizer')) {
+            throw new Exception('Image_Optimizer class could not be loaded');
+        }
+
+        // Rest of your initialization code...
+        if (!extension_loaded('imagick') && !extension_loaded('gd')) {
+            add_action('admin_notices', 'iop_image_lib_notice');
+            return;
+        }
+        
         wp_mkdir_p(IOP_LOG_DIR);
-    }
-    if (!file_exists(IOP_BACKUP_DIR)) {
         wp_mkdir_p(IOP_BACKUP_DIR);
+        
+        new Image_Optimizer_Pro\Image_Optimizer();
+        new Image_Optimizer_Pro\Optimizer_Admin();
+        new Image_Optimizer_Pro\Optimizer_Ajax();
+        new Image_Optimizer_Pro\Optimizer_Cron();
+        
+        register_activation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'activate']);
+        register_deactivation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'deactivate']);
+        
+    } catch (Exception $e) {
+        add_action('admin_notices', function() use ($e) {
+            echo '<div class="error"><p>Image Optimizer Pro Error: ' 
+                . esc_html($e->getMessage()) . '</p></div>';
+        });
     }
-    
-    // Load plugin classes
-    $image_optimizer = new Image_Optimizer_Pro\Image_Optimizer();
-    $admin_interface = new Image_Optimizer_Pro\Optimizer_Admin();
-    $ajax_handlers = new Image_Optimizer_Pro\Optimizer_Ajax();
-    $cron_jobs = new Image_Optimizer_Pro\Optimizer_Cron();
-    
-    // Register activation/deactivation hooks
-    register_activation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'activate']);
-    register_deactivation_hook(__FILE__, ['Image_Optimizer_Pro\Optimizer_Admin', 'deactivate']);
 }
-add_action('plugins_loaded', 'iop_init');
 
 function iop_image_lib_notice() {
     echo '<div class="error"><p>';
