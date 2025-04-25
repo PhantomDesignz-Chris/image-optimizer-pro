@@ -46,11 +46,11 @@ jQuery(document).ready(function($) {
                 // Update progress
                 const percent = Math.round((response.data.processed / response.data.total) * 100);
                 $('.iop-progress-fill').css('width', percent + '%');
-                $('.iop-progress-text').html(
+                $('.iop-progress-text').text(
                     response.data.processed + '/' + response.data.total + ' ' + 
                     iop_vars.images_processed + ' (' + percent + '%)'
                 );
-                $('.iop-progress-details').html(
+                $('.iop-progress-details').text(
                     iop_vars.saved + ': ' + response.data.savings + '<br>' +
                     iop_vars.current_image + ': ' + response.data.current_file
                 );
