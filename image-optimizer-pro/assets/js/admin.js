@@ -70,7 +70,7 @@ jQuery(document).ready(function($) {
                 nonce: iop_vars.nonce
             },
             success: function(response) {
-                $('#iop-stats-container').html(response.data.html);
+                $('#iop-stats-container').text(response.data.html);
             }
         });
     }
