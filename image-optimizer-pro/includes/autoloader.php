@@ -1,35 +1,22 @@
 <?php
-spl_autoload_register(function ($class_name) {
-    $namespace = 'Image_Optimizer_Pro\\';
+spl_autoload_register(function ($class) {
+    $prefix = 'Image_Optimizer_Pro\\';
+    $base_dir = __DIR__ . '/includes/';
     
-    // Only autoload our plugin's classes
-    if (strpos($class_name, $namespace) !== 0) {
+    // Does the class use the namespace prefix?
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
         return;
     }
     
-    // Remove namespace prefix
-    $class_name = str_replace($namespace, '', $class_name);
+    // Get the relative class name
+    $relative_class = substr($class, $len);
     
-    // Convert to file path
-    $class_file = str_replace('_', '-', strtolower($class_name)) . '.php';
+    // Replace namespace separators and underscores with directory separators
+    $file = $base_dir . str_replace(['\\', '_'], ['/', '-'], strtolower($relative_class)) . '.php';
     
-    // Possible file paths
-    $locations = [
-        IOP_PLUGIN_DIR . 'includes/',
-        IOP_PLUGIN_DIR . 'includes/classes/'
-    ];
-    
-    // Try each location
-    foreach ($locations as $location) {
-        $file = $location . $class_file;
-        if (file_exists($file)) {
-            require_once $file;
-            return;
-        }
-    }
-    
-    // Log if class not found (but don't break the site)
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("Image Optimizer Pro: Class {$class_name} not found in {$class_file}");
+    // If the file exists, require it
+    if (file_exists($file)) {
+        require $file;
     }
 });
