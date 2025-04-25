@@ -1,0 +1,52 @@
+/* Frontend styles for image comparisons or other public-facing elements */
+.iop-comparison-container {
+    position: relative;
+    max-width: 100%;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.iop-image-slider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+    overflow: hidden;
+    resize: horizontal;
+    max-width: 100%;
+}
+
+.iop-image-slider img {
+    display: block;
+    width: auto;
+    height: 100%;
+    max-width: none;
+}
+
+.iop-slider-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #fff;
+    cursor: ew-resize;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.iop-before-after-labels {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.8);
+    z-index: 10;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .iop-image-slider {
+        width: 100%;
+        resize: none;
+    }
+}
