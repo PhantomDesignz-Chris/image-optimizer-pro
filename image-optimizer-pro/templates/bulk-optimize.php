@@ -1,9 +1,18 @@
 <?php
-if (!defined('ABSPATH')) exit;
+if (!defined('ABSPATH')) {
+    exit; // Exit if accessed directly
+}
 
-error_log('Bulk optimize template loading...');
-error_log('Total stats: ' . print_r($total_stats, true));
-error_log('Recent optimizations: ' . print_r($recent_optimizations, true));
+// Debug: Check if template is loading
+error_log('Bulk optimize template started');
+
+// Basic output test
+echo '<div class="wrap"><h1>Test Output</h1><p>If you see this, the template is loading.</p></div>';
+
+// Uncomment after confirming basic output works:
+// $stats_handler = new Image_Optimizer_Pro\Optimizer_Stats();
+// $total_stats = $stats_handler->get_total_stats();
+// $recent_optimizations = $stats_handler->get_recent_optimizations(10);
 ?>
 
 <?php
