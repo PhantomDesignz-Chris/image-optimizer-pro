@@ -1,6 +1,14 @@
 <?php
 if (!defined('ABSPATH')) exit;
 
+error_log('Bulk optimize template loading...');
+error_log('Total stats: ' . print_r($total_stats, true));
+error_log('Recent optimizations: ' . print_r($recent_optimizations, true));
+?>
+
+<?php
+if (!defined('ABSPATH')) exit;
+
 $stats_handler = new Image_Optimizer_Pro\Optimizer_Stats();
 $total_stats = $stats_handler->get_total_stats();
 $recent_optimizations = $stats_handler->get_recent_optimizations(10);
