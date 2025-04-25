@@ -72,6 +72,7 @@ function iop_init() {
         });
     }
 }
+add_action('plugins_loaded', 'iop_init');
 
 function iop_image_lib_notice() {
     echo '<div class="error"><p>';
