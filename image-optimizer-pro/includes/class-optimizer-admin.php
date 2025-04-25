@@ -84,17 +84,31 @@ class Optimizer_Admin {
         require_once IOP_PLUGIN_DIR . 'templates/admin-settings.php';
     }
 
-    public function bulk_optimize_page() {
-        if (!current_user_can('upload_files')) {
-            wp_die(__('You do not have sufficient permissions to access this page.', 'image-optimizer-pro'));
-        }
-        
-        $stats_handler = new Optimizer_Stats();
-        $total_stats = $stats_handler->get_total_stats();
-        $recent_optimizations = $stats_handler->get_recent_optimizations(10);
-        
-        require_once IOP_PLUGIN_DIR . 'templates/bulk-optimize.php';
+public function bulk_optimize_page() {
+    if (!current_user_can('upload_files')) {
+        wp_die(__('You do not have sufficient permissions to access this page.', 'image-optimizer-pro'));
     }
+
+    // Debug output
+    error_log('Loading bulk optimize page');
+    error_log('Plugin path: ' . IOP_PLUGIN_DIR);
+    
+    $stats_handler = new Optimizer_Stats();
+    $total_stats = $stats_handler->get_total_stats();
+    $recent_optimizations = $stats_handler->get_recent_optimizations(10);
+    
+    error_log('Total stats: ' . print_r($total_stats, true));
+    error_log('Recent optimizations count: ' . count($recent_optimizations));
+    
+    $template_path = IOP_PLUGIN_DIR . 'templates/bulk-optimize.php';
+    error_log('Template exists: ' . (file_exists($template_path) ? 'Yes' : 'No'));
+    
+    if (!file_exists($template_path)) {
+        wp_die('Template file missing: ' . $template_path);
+    }
+    
+    require_once $template_path;
+}
 
     public function compare_viewer_page() {
         if (!current_user_can('upload_files') || !isset($_GET['attachment_id'])) {
