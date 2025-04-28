@@ -1,15 +1,9 @@
-Fatal error: Uncaught Error: Call to undefined method Image_Optimizer_Pro\Optimizer_Stats::display_stats_summary() in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/templates/admin-settings.php:33 Stack trace: #0 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-admin.php(89): require_once() #1 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(324): Image_Optimizer_Pro\Optimizer_Admin->settings_page('') #2 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters('', Array) #3 /www/thepayrolledge_435/public/wp-includes/plugin.php(517): WP_Hook->do_action(Array) #4 /www/thepayrolledge_435/public/wp-admin/admin.php(260): do_action('settings_page_i...') #5 /www/thepayrolledge_435/public/wp-admin/options-general.php(10): require_once('/www/thepayroll...') #6 {main} thrown in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/templates/admin-settings.php on line 33
+Fatal error: Uncaught Error: Non-static method Image_Optimizer_Pro\Optimizer_Stats::get_total_stats() cannot be called statically in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-stats.php:7 Stack trace: #0 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/templates/admin-settings.php(33): Image_Optimizer_Pro\Optimizer_Stats::display_stats_summary() #1 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-admin.php(89): require_once('/www/thepayroll...') #2 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(324): Image_Optimizer_Pro\Optimizer_Admin->settings_page('') #3 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters('', Array) #4 /www/thepayrolledge_435/public/wp-includes/plugin.php(517): WP_Hook->do_action(Array) #5 /www/thepayrolledge_435/public/wp-admin/admin.php(260): do_action('settings_page_i...') #6 /www/thepayrolledge_435/public/wp-admin/options-general.php(10): require_once('/www/thepayroll...') #7 {main} thrown in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-stats.php on line 7
 
-Notice: Function _load_textdomain_just_in_time was called incorrectly. Translation loading for the image-optimizer-pro domain was triggered too early. This is usually an indicator for some code in the plugin or theme running too early. Translations should be loaded at the init action or later. Please see Debugging in WordPress for more information. (This message was added in version 6.7.0.) in /www/thepayrolledge_435/public/wp-includes/functions.php on line 6121
-
-When I click start optimization:
-
-Error occurred - in a popup shows
-
-and in console I get:
+Error Occured Popup
 
 jquery.js?ver=3.7.1:9940 
- POST https://stg-thepayrolledge-tpestg.kinsta.cloud/wp-admin/admin-ajax.php 400 (Bad Request)
+ POST https://stg-thepayrolledge-tpestg.kinsta.cloud/wp-admin/admin-ajax.php 500 (Internal Server Error)
 send	@	jquery.js?ver=3.7.1:9940
 ajax	@	jquery.js?ver=3.7.1:9521
 (anonymous)	@	jquery-migrate.js?ver=3.4.1:379
