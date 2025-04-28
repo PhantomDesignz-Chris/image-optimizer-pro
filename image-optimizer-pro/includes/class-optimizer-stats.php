@@ -2,7 +2,7 @@
 namespace Image_Optimizer_Pro;
 
 class Optimizer_Stats {
- // Add this method:
+    // Make both methods static
     public static function display_stats_summary() {
         $stats = self::get_total_stats();
         ?>
@@ -25,33 +25,35 @@ class Optimizer_Stats {
         </div>
         <?php
     }
+
+    public static function get_total_stats() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'iop_optimizations';
+        
+        $stats = $wpdb->get_row("
+            SELECT 
+                COUNT(*) as total_images,
+                SUM(original_size) as total_original_size,
+                SUM(optimized_size) as total_optimized_size,
+                SUM(original_size - optimized_size) as total_savings
+            FROM $table_name
+        ");
+        
+        return [
+            'total_images' => $stats->total_images ?: 0,
+            'total_original' => $stats->total_original_size ?: 0,
+            'total_optimized' => $stats->total_optimized_size ?: 0,
+            'total_savings' => $stats->total_savings ?: 0,
+            'savings_percent' => $stats->total_original_size ? 
+                round(($stats->total_savings / $stats->total_original_size) * 100, 2) : 0
+        ];
+    }
+
     
     public function __construct() {
         add_action('admin_init', [$this, 'export_stats']);
     }
     
-public function get_total_stats() {
-    global $wpdb;
-    $table_name = $wpdb->prefix . 'iop_optimizations';
-    
-    $stats = $wpdb->get_row("
-        SELECT 
-            COUNT(*) as total_images,
-            SUM(original_size) as total_original_size,
-            SUM(optimized_size) as total_optimized_size,
-            SUM(original_size - optimized_size) as total_savings
-        FROM $table_name
-    ");
-    
-    return [
-        'total_images' => $stats->total_images ?: 0,
-        'total_original' => $stats->total_original_size ?: 0,
-        'total_optimized' => $stats->total_optimized_size ?: 0,
-        'total_savings' => $stats->total_savings ?: 0,
-        'savings_percent' => $stats->total_original_size ? 
-            round(($stats->total_savings / $stats->total_original_size) * 100, 2) : 0
-    ];
-}
 
 public function get_recent_optimizations($limit = 10) {
     global $wpdb;
