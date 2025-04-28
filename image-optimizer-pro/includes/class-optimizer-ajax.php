@@ -40,11 +40,12 @@ class Optimizer_Ajax {
 
 public function process_batch() {
     try {
-        // Verify nonce first
-        if (!isset($_POST['nonce']) {
+        // Fix the missing parenthesis in the nonce check
+        if (!isset($_POST['nonce'])) { // ← Fix this line
             throw new \Exception('Nonce verification failed');
         }
         
+        // Rest of the method remains the same
         if (!wp_verify_nonce($_POST['nonce'], 'iop_nonce')) {
             throw new \Exception('Invalid nonce');
         }
@@ -110,6 +111,7 @@ public function process_batch() {
             'current_file' => $last_file
         ]);
         
+        // ... rest of the method code ...
     } catch (\Exception $e) {
         wp_send_json_error($e->getMessage(), 400);
     }
