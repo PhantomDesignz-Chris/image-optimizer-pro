@@ -46,6 +46,23 @@ class Optimizer_Tools {
             'max_execution_time' => ini_get('max_execution_time')
         ];
     }
+
+    public function reset_optimization_status() {
+    global $wpdb;
+    
+    // Reset postmeta
+    $wpdb->query("
+        DELETE FROM {$wpdb->postmeta} 
+        WHERE meta_key IN ('iop_optimized', 'iop_original_size', 'iop_optimized_size')
+    ");
+    
+    // Clear stats table
+    $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}iop_optimizations");
+    
+    // Clear backups
+    array_map('unlink', glob(IOP_BACKUP_DIR . '/*/*.*'));
+    array_map('rmdir', glob(IOP_BACKUP_DIR . '/*'));
+}
     
     public static function display_server_info() {
         $info = self::get_server_info();
