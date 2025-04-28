@@ -6,6 +6,11 @@ class Optimizer_Ajax {
     
     public function __construct() {
         $this->optimizer = new Image_Optimizer();
+
+            add_action('update_option_iop_settings', function() {
+        $this->load_settings();
+    });
+    $this->load_settings();
         
         // Register AJAX handlers
         add_action('wp_ajax_iop_get_image_stats', [$this, 'get_image_stats']);
