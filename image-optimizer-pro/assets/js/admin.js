@@ -1,70 +1,105 @@
 jQuery(document).ready(function($) {
-    // Initialize bulk optimization
-    let isOptimizing = false;
-    let currentBatch = 0;
-    const batchSize = 5;
-    
-    $('#iop-start-bulk').on('click', function() {
-        if (isOptimizing) return;
-        
-        isOptimizing = true;
-        currentBatch = 0;
-        $('#iop-bulk-progress').show();
-        $(this).prop('disabled', true);
-        
-        processBatch();
-    });
-    
-function processBatch() {
-    $.ajax({
-        url: iop_vars.ajax_url,
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            action: 'iop_process_batch',
-            nonce: iop_vars.nonce,
-            batch: currentBatch,
-            batch_size: batchSize
+    const iop = {
+        init() {
+            this.bindEvents();
+            this.refreshStats();
         },
-        success: function(response) {
-            if (response.success) {
-                handleSuccess(response.data);
-            } else {
-                showError(response.data || 'Unknown error occurred');
-            }
+
+        bindEvents() {
+            $('#iop-start-bulk').on('click', (e) => this.startOptimization(e));
+            $('#iop-refresh-stats').on('click', (e) => this.refreshStats(e));
         },
-        error: function(xhr) {
-            let errorMsg = 'Request failed: ';
-            if (xhr.responseJSON && xhr.responseJSON.data) {
-                errorMsg += xhr.responseJSON.data;
-            } else {
-                errorMsg += xhr.statusText;
-            }
-            showError(errorMsg);
+
+        startOptimization(e) {
+            e.preventDefault();
+            let currentBatch = 0;
+            const batchSize = 5;
+            
+            const processBatch = () => {
+                $.ajax({
+                    url: iop_vars.ajax_url,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        action: 'iop_process_batch',
+                        nonce: iop_vars.nonce,
+                        batch: currentBatch,
+                        batch_size: batchSize
+                    },
+                    success: (response) => {
+                        if (response.success) {
+                            this.updateProgress(response.data);
+                            if (!response.data.complete) {
+                                currentBatch++;
+                                setTimeout(processBatch, 500);
+                            } else {
+                                this.completeOptimization();
+                            }
+                        } else {
+                            this.showError(response.data);
+                        }
+                    },
+                    error: (xhr) => {
+                        this.showError(xhr.responseJSON?.data || iop_vars.error);
+                    }
+                });
+            };
+
+            $('#iop-bulk-progress').show();
+            $('#iop-start-bulk').prop('disabled', true);
+            processBatch();
+        },
+
+        refreshStats(e) {
+            if (e) e.preventDefault();
+            $.ajax({
+                url: iop_vars.ajax_url,
+                type: 'GET',
+                dataType: 'json',
+                data: {
+                    action: 'iop_get_image_stats',
+                    nonce: iop_vars.nonce
+                },
+                success: (response) => {
+                    if (response.success) {
+                        this.updateStatsDisplay(response.data);
+                    } else {
+                        this.showError(response.data);
+                    }
+                },
+                error: (xhr) => {
+                    this.showError(xhr.responseJSON?.data || iop_vars.error);
+                }
+            });
+        },
+
+        updateProgress(data) {
+            const percent = Math.round((data.processed / data.total) * 100);
+            $('.iop-progress-fill').css('width', percent + '%');
+            $('.iop-progress-text').html(`
+                ${data.processed}/${data.total} ${iop_vars.images_processed} (${percent}%)<br>
+                ${iop_vars.saved}: ${data.savings}
+            `);
+        },
+
+        completeOptimization() {
+            $('#iop-start-bulk').prop('disabled', false);
+            setTimeout(() => location.reload(), 2000);
+        },
+
+        updateStatsDisplay(data) {
+            $('#iop-total-images').text(data.total);
+            $('#iop-optimized-count').text(data.optimized);
+            $('#iop-unoptimized-count').text(data.unoptimized);
+            $('#iop-backup-count').text(data.backups);
+        },
+
+        showError(message) {
+            $('#iop-bulk-progress').hide();
+            $('#iop-start-bulk').prop('disabled', false);
+            alert(`${iop_vars.error}: ${message}`);
         }
-    });
-}
+    };
 
-function handleSuccess(data) {
-    const percent = Math.round((data.processed / data.total) * 100);
-    $('.iop-progress-fill').css('width', percent + '%');
-    $('.iop-progress-text').html(
-        `${data.processed}/${data.total} ${iop_vars.images_processed} (${percent}%)`
-    );
-    
-    if (data.complete) {
-        isOptimizing = false;
-        $('#iop-start-bulk').prop('disabled', false);
-        setTimeout(() => location.reload(), 2000); // Refresh after 2 seconds
-    } else {
-        currentBatch++;
-        setTimeout(processBatch, 500);
-    }
-}
-
-function showError(message) {
-    isOptimizing = false;
-    $('#iop-start-bulk').prop('disabled', false);
-    alert(`${iop_vars.error}: ${message}`);
-}
+    iop.init();
 });
