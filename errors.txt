@@ -1,15 +1,2 @@
-Fatal error: Uncaught Error: Non-static method Image_Optimizer_Pro\Optimizer_Stats::get_total_stats() cannot be called statically in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-stats.php:7 Stack trace: #0 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/templates/admin-settings.php(33): Image_Optimizer_Pro\Optimizer_Stats::display_stats_summary() #1 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-admin.php(89): require_once('/www/thepayroll...') #2 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(324): Image_Optimizer_Pro\Optimizer_Admin->settings_page('') #3 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters('', Array) #4 /www/thepayrolledge_435/public/wp-includes/plugin.php(517): WP_Hook->do_action(Array) #5 /www/thepayrolledge_435/public/wp-admin/admin.php(260): do_action('settings_page_i...') #6 /www/thepayrolledge_435/public/wp-admin/options-general.php(10): require_once('/www/thepayroll...') #7 {main} thrown in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-stats.php on line 7
 
-Error Occured Popup
-
-jquery.js?ver=3.7.1:9940 
- POST https://stg-thepayrolledge-tpestg.kinsta.cloud/wp-admin/admin-ajax.php 500 (Internal Server Error)
-send	@	jquery.js?ver=3.7.1:9940
-ajax	@	jquery.js?ver=3.7.1:9521
-(anonymous)	@	jquery-migrate.js?ver=3.4.1:379
-obj.<computed>	@	jquery-migrate.js?ver=3.4.1:181
-jQuery.<computed>	@	jquery.js?ver=3.7.1:9677
-processBatch	@	admin.js?ver=1.0.0:39
-(anonymous)	@	admin.js?ver=1.0.0:32
-dispatch	@	jquery.js?ver=3.7.1:5145
-elemData.handle	@	jquery.js?ver=3.7.1:4949
+Parse error: syntax error, unexpected token "{" in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-ajax.php on line 44
