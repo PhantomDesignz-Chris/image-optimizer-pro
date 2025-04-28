@@ -74,6 +74,29 @@ if (!file_exists($autoloader_path)) {
 
 require_once $autoloader_path;
 
+// TEMPORARY: Manual class loader - remove after fixing autoloader
+function iop_manual_load_classes() {
+    $classes = [
+        'class-image-optimizer',
+        'class-optimizer-admin',
+        'class-optimizer-ajax',
+        'class-optimizer-cron',
+        'class-optimizer-stats',
+        'class-optimizer-backup',
+        'class-optimizer-tools'
+    ];
+    
+    foreach ($classes as $class) {
+        $file = IOP_PLUGIN_DIR . 'includes/' . $class . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+        } else {
+            error_log("[Image Optimizer] Missing file: {$file}");
+        }
+    }
+}
+iop_manual_load_classes();
+
 // Initialize the plugin
 function iop_init() {
 
