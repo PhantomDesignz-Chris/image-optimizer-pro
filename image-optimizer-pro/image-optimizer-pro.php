@@ -194,24 +194,38 @@ register_deactivation_hook(__FILE__, function() {
 add_action('admin_notices', function() {
     if (!current_user_can('manage_options')) return;
     
-    echo '<div class="notice notice-info"><pre>';
-    echo "Debug Information:\n";
+    $missing = [];
+    $classes = [
+        'Optimizer_Stats',
+        'Optimizer_Admin',
+        'Image_Optimizer'
+    ];
     
-    // Check class existence
-    echo "Optimizer_Stats class: " . 
-         (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Exists' : 'MISSING') . "\n";
-    
-    // Check file existence
-    $path = IOP_PLUGIN_DIR . 'includes/class-optimizer-stats.php';
-    echo "File path: {$path}\n";
-    echo "File exists: " . (file_exists($path) ? 'Yes' : 'NO') . "\n";
-    
-    // Check file contents
-    if (file_exists($path)) {
-        echo "First line: " . htmlspecialchars(fgets(fopen($path, 'r'))) . "\n";
+    foreach ($classes as $class) {
+        if (!class_exists('Image_Optimizer_Pro\\' . $class)) {
+            $missing[] = $class;
+        }
     }
     
-    echo '</pre></div>';
+    if (!empty($missing)) {
+        echo '<div class="notice notice-error"><pre>';
+        echo "Missing Classes:\n";
+        print_r($missing);
+        echo "\n\nDebug Info:\n";
+        echo "Plugin Path: " . IOP_PLUGIN_DIR . "\n";
+        
+        foreach ($missing as $class) {
+            $file = 'class-' . strtolower(str_replace('_', '-', $class)) . '.php';
+            $path = IOP_PLUGIN_DIR . 'includes/' . $file;
+            echo "\nChecking: {$file}\n";
+            echo "Exists: " . (file_exists($path) ? 'Yes' : 'NO') . "\n";
+            if (file_exists($path)) {
+                echo "First line: " . htmlspecialchars(fgets(fopen($path, 'r')));
+            }
+        }
+        
+        echo '</pre></div>';
+    }
 });
 
 // Initialize the plugin
