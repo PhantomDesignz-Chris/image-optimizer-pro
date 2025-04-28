@@ -101,11 +101,14 @@ iop_manual_load_classes();
 // Initialize the plugin
 function iop_init() {
 
-    load_plugin_textdomain(
-        'image-optimizer-pro',
-        false,
-        dirname(plugin_basename(__FILE__)) . '/languages'
-    );
+        // Load textdomain
+    add_action('init', function() {
+        load_plugin_textdomain(
+            'image-optimizer-pro',
+            false,
+            dirname(plugin_basename(__FILE__)) . '/languages'
+        );
+    });
     
     try {
         // Debug class existence
