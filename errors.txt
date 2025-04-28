@@ -1,2 +1,38 @@
+Bulk Optimize page has the Error Occured Popup and the following:
 
-Parse error: syntax error, unexpected token "{" in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-optimizer-ajax.php on line 44
+jquery.js?ver=3.7.1:9940 
+ GET https://stg-thepayrolledge-tpestg.kinsta.cloud/wp-admin/admin-ajax.php?action=iop_get_image_stats&nonce=75a78c01b8 400 (Bad Request)
+send	@	jquery.js?ver=3.7.1:9940
+ajax	@	jquery.js?ver=3.7.1:9521
+(anonymous)	@	jquery-migrate.js?ver=3.4.1:379
+obj.<computed>	@	jquery-migrate.js?ver=3.4.1:181
+jQuery.<computed>	@	jquery.js?ver=3.7.1:9677
+refreshStats	@	admin.js?ver=1.0.0:9
+(anonymous)	@	admin.js?ver=1.0.0:94
+mightThrow	@	jquery.js?ver=3.7.1:3489
+process	@	jquery.js?ver=3.7.1:3557
+setTimeout		
+(anonymous)	@	jquery.js?ver=3.7.1:3602
+fire	@	jquery.js?ver=3.7.1:3223
+fireWith	@	jquery.js?ver=3.7.1:3353
+fire	@	jquery.js?ver=3.7.1:3361
+fire	@	jquery.js?ver=3.7.1:3223
+fireWith	@	jquery.js?ver=3.7.1:3353
+ready	@	jquery.js?ver=3.7.1:3844
+completed	@	jquery.js?ver=3.7.1:3854
+
+jquery.js?ver=3.7.1:9940 
+ POST https://stg-thepayrolledge-tpestg.kinsta.cloud/wp-admin/admin-ajax.php 400 (Bad Request)
+send	@	jquery.js?ver=3.7.1:9940
+ajax	@	jquery.js?ver=3.7.1:9521
+(anonymous)	@	jquery-migrate.js?ver=3.4.1:379
+obj.<computed>	@	jquery-migrate.js?ver=3.4.1:181
+jQuery.<computed>	@	jquery.js?ver=3.7.1:9677
+processBatch	@	admin.js?ver=1.0.0:39
+(anonymous)	@	admin.js?ver=1.0.0:32
+dispatch	@	jquery.js?ver=3.7.1:5145
+elemData.handle	@	jquery.js?ver=3.7.1:4949
+
+﻿
+
+The settings page no longer has errors
