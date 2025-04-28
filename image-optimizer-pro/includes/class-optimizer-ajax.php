@@ -130,29 +130,36 @@ class Optimizer_Ajax {
         }
     }
 
-    private function log_optimization($file_path, $attachment_id) {
-    try {
-        // Get size BEFORE optimization
-        $original_size = filesize($file_path);
-        
-        // Wait for file system changes
-        clearstatcache(true, $file_path);
-        usleep(500000); // 0.5 second delay
-        
-        // Get size AFTER optimization
-        $optimized_size = filesize($file_path);
-        
-        // Ensure valid calculation
-        if ($optimized_size >= $original_size) {
-            error_log("No savings detected for: {$file_path}");
-            $optimized_size = $original_size;
-        }
-
-    private function check_permissions() {
-        if (!current_user_can('upload_files')) {
-            throw new \Exception('Permission denied');
-        }
+private function log_optimization($file_path, $attachment_id) {
+    // Get size BEFORE optimization
+    $original_size = filesize($file_path);
+    
+    // Wait for file system changes
+    clearstatcache(true, $file_path);
+    usleep(500000); // 0.5 second delay
+    
+    // Get size AFTER optimization
+    $optimized_size = filesize($file_path);
+    
+    // Ensure valid calculation
+    if ($optimized_size >= $original_size) {
+        error_log("No savings detected for: {$file_path}");
+        $optimized_size = $original_size;
     }
+    
+    // Return or store the optimization results
+    return [
+        'original_size' => $original_size,
+        'optimized_size' => $optimized_size,
+        'savings' => $original_size - $optimized_size
+    ];
+}
+
+private function check_permissions() {
+    if (!current_user_can('upload_files')) {
+        throw new \Exception('Permission denied');
+    }
+}
 
     private function count_unoptimized_images() {
         $args = [
