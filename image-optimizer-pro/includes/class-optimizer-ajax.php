@@ -40,16 +40,17 @@ class Optimizer_Ajax {
 
 public function process_batch() {
     try {
-        // Fix the missing parenthesis in the nonce check
-        if (!isset($_POST['nonce'])) { // ← Fix this line
+        // Verify nonce exists first
+        if (!isset($_POST['nonce'])) {
             throw new \Exception('Nonce verification failed');
         }
-        
-        // Rest of the method remains the same
+
+        // Validate nonce
         if (!wp_verify_nonce($_POST['nonce'], 'iop_nonce')) {
             throw new \Exception('Invalid nonce');
         }
 
+        // Check user capabilities
         if (!current_user_can('upload_files')) {
             throw new \Exception('Permission denied');
         }
