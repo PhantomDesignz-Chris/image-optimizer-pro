@@ -1,6 +1,11 @@
 <?php
 namespace Image_Optimizer_Pro;
 
+// Add this right after the namespace declaration:
+if (!class_exists('Exception')) {
+    class_alias(\Exception::class, 'Exception');
+}
+
 class Optimizer_Admin {
     public function __construct() {
         add_action('admin_menu', [$this, 'add_admin_menu']);
@@ -84,30 +89,30 @@ class Optimizer_Admin {
         require_once IOP_PLUGIN_DIR . 'templates/admin-settings.php';
     }
 
+// Then modify your bulk_optimize_page() method:
 public function bulk_optimize_page() {
     if (!current_user_can('upload_files')) {
         wp_die(__('You do not have sufficient permissions to access this page.', 'image-optimizer-pro'));
     }
 
     try {
-        // Verify class exists
-        if (!class_exists('Image_Optimizer_Pro\Optimizer_Stats')) {
-            throw new Exception('Optimizer_Stats class not loaded. Check autoloader.');
+        // First check if the stats class exists
+        if (!class_exists(__NAMESPACE__ . '\Optimizer_Stats')) {
+            throw new \Exception('Optimizer_Stats class not loaded. Check autoloader.');
         }
 
         $stats_handler = new Optimizer_Stats();
         $total_stats = $stats_handler->get_total_stats();
         $recent_optimizations = $stats_handler->get_recent_optimizations(10);
 
-        // Verify template exists
         $template_path = IOP_PLUGIN_DIR . 'templates/bulk-optimize.php';
         if (!file_exists($template_path)) {
-            throw new Exception('Template file missing: ' . $template_path);
+            throw new \Exception('Template file missing: ' . $template_path);
         }
 
         require $template_path;
 
-    } catch (Exception $e) {
+    } catch (\Exception $e) {
         echo '<div class="error"><p>';
         echo '<strong>' . __('Error', 'image-optimizer-pro') . ':</strong> ' . esc_html($e->getMessage());
         echo '</p></div>';
@@ -115,9 +120,10 @@ public function bulk_optimize_page() {
         // Debug info for admins
         if (current_user_can('manage_options')) {
             echo '<pre>Debug Info:';
-            echo "\nClass exists: " . (class_exists('Image_Optimizer_Pro\Optimizer_Stats') ? 'Yes' : 'No');
+            echo "\nClass exists: " . (class_exists(__NAMESPACE__ . '\Optimizer_Stats') ? 'Yes' : 'No');
             echo "\nTemplate path: " . $template_path;
             echo "\nTemplate exists: " . (file_exists($template_path) ? 'Yes' : 'No');
+            echo "\nNamespace: " . __NAMESPACE__;
             echo '</pre>';
         }
     }
