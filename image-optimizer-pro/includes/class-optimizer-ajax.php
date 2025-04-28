@@ -52,6 +52,8 @@ class Optimizer_Ajax {
 
     public function process_batch() {
         try {
+            set_time_limit(0);
+            wp_raise_memory_limit('image-optimizer');
             $this->verify_nonce();
             $this->check_permissions();
 
@@ -91,15 +93,16 @@ class Optimizer_Ajax {
             $last_file = '';
             
             foreach ($attachments as $attachment_id) {
-                if ($this->optimizer->optimize_upload($attachment_id)) {
-                    $processed++;
-                    $last_file = get_the_title($attachment_id);
-                    
-                    $original = get_post_meta($attachment_id, 'iop_original_size', true);
-                    $optimized = get_post_meta($attachment_id, 'iop_optimized_size', true);
-                    if ($original && $optimized) {
-                        $savings += ($original - $optimized);
+                try {
+                    $result = $this->optimizer->optimize_upload($attachment_id);
+                    if ($result) {
+                        $processed++;
+                        error_log("Successfully optimized: {$attachment_id}");
+                    } else {
+                        error_log("Failed to optimize: {$attachment_id}");
                     }
+                } catch (\Exception $e) {
+                    error_log("Optimization error for {$attachment_id}: " . $e->getMessage());
                 }
             }
             
@@ -121,6 +124,24 @@ class Optimizer_Ajax {
             throw new \Exception('Security check failed');
         }
     }
+
+    private function log_optimization($file_path, $attachment_id) {
+    try {
+        // Get size BEFORE optimization
+        $original_size = filesize($file_path);
+        
+        // Wait for file system changes
+        clearstatcache(true, $file_path);
+        usleep(500000); // 0.5 second delay
+        
+        // Get size AFTER optimization
+        $optimized_size = filesize($file_path);
+        
+        // Ensure valid calculation
+        if ($optimized_size >= $original_size) {
+            error_log("No savings detected for: {$file_path}");
+            $optimized_size = $original_size;
+        }
 
     private function check_permissions() {
         if (!current_user_can('upload_files')) {
