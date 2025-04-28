@@ -369,6 +369,16 @@ class Image_Optimizer {
             update_post_meta($attachment_id, 'iop_optimized', true);
             update_post_meta($attachment_id, 'iop_optimized_size', $optimized_size);
             update_post_meta($attachment_id, 'iop_original_size', $original_size);
+
+        // Add debug logging
+        error_log("Optimizing: {$file_path}");
+        error_log("Original size: " . size_format($original_size, 2));
+        
+        // ... rest of the method ...
+        
+        error_log("Optimized size: " . size_format($optimized_size, 2));
+        error_log("Savings: " . size_format($savings, 2));
+        
             
         } catch (\Exception $e) {
             error_log("Optimization logging failed: " . $e->getMessage());
