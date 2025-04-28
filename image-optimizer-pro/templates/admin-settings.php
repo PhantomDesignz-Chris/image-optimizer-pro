@@ -1,3 +1,18 @@
+<?php 
+if (!defined('ABSPATH')) exit;
+
+// Debug: Check if classes are loaded
+if (!class_exists('Image_Optimizer_Pro\Optimizer_Stats')) {
+    echo '<div class="error"><p>';
+    echo __('Error: Required classes not loaded. Please check error logs.', 'image-optimizer-pro');
+    echo '</p></div>';
+    return;
+}
+
+$stats_handler = new Image_Optimizer_Pro\Optimizer_Stats();
+$total_stats = $stats_handler->get_total_stats();
+?>
+
 <div class="wrap">
     <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
     
