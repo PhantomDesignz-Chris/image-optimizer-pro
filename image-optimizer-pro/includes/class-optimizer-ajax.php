@@ -6,7 +6,7 @@ class Optimizer_Ajax {
     
     public function __construct() {
         $this->optimizer = new Image_Optimizer();
-        
+        add_action('wp_ajax_iop_process_batch', [$this, 'process_batch']);
         add_action('wp_ajax_iop_optimize_single', [$this, 'optimize_single']);
         add_action('wp_ajax_iop_bulk_optimize', [$this, 'bulk_optimize']);
         add_action('wp_ajax_iop_restore_image', [$this, 'restore_image']);
@@ -41,64 +41,71 @@ class Optimizer_Ajax {
 public function process_batch() {
     check_ajax_referer('iop_nonce', 'nonce');
     
+    if (!current_user_can('upload_files')) {
+        wp_send_json_error(__('Permission denied', 'image-optimizer-pro'), 403);
+    }
+
     $batch = isset($_POST['batch']) ? absint($_POST['batch']) : 0;
     $batch_size = isset($_POST['batch_size']) ? absint($_POST['batch_size']) : 5;
     
-    $args = [
-        'post_type' => 'attachment',
-        'post_mime_type' => ['image/jpeg', 'image/png'],
-        'post_status' => 'inherit',
-        'posts_per_page' => $batch_size,
-        'offset' => $batch * $batch_size,
-        'fields' => 'ids',
-        'meta_query' => [
-            [
-                'key' => 'iop_optimized',
-                'compare' => 'NOT EXISTS'
+    try {
+        $args = [
+            'post_type' => 'attachment',
+            'post_mime_type' => ['image/jpeg', 'image/png'],
+            'post_status' => 'inherit',
+            'posts_per_page' => $batch_size,
+            'offset' => $batch * $batch_size,
+            'fields' => 'ids',
+            'meta_query' => [
+                [
+                    'key' => 'iop_optimized',
+                    'compare' => 'NOT EXISTS'
+                ]
             ]
-        ]
-    ];
-    
-    $attachments = get_posts($args);
-    $total_unoptimized = $this->count_unoptimized_images();
-    
-    if (empty($attachments)) {
-        wp_send_json_success([
-            'processed' => $batch * $batch_size,
-            'total' => $total_unoptimized,
-            'complete' => true,
-            'savings' => '0B',
-            'current_file' => ''
-        ]);
-    }
-    
-    $optimizer = new Image_Optimizer();
-    $processed = 0;
-    $savings = 0;
-    $last_file = '';
-    
-    foreach ($attachments as $attachment_id) {
-        $result = $optimizer->optimize_upload($attachment_id);
-        if ($result) {
-            $processed++;
-            $last_file = get_the_title($attachment_id);
-            
-            // Get savings for this image
-            $original = get_post_meta($attachment_id, 'iop_original_size', true);
-            $optimized = get_post_meta($attachment_id, 'iop_optimized_size', true);
-            if ($original && $optimized) {
-                $savings += ($original - $optimized);
+        ];
+        
+        $attachments = get_posts($args);
+        $total_unoptimized = $this->count_unoptimized_images();
+        
+        if (empty($attachments)) {
+            wp_send_json_success([
+                'processed' => $batch * $batch_size,
+                'total' => $total_unoptimized,
+                'complete' => true,
+                'savings' => '0B',
+                'current_file' => ''
+            ]);
+        }
+        
+        $optimizer = new Image_Optimizer();
+        $processed = 0;
+        $savings = 0;
+        $last_file = '';
+        
+        foreach ($attachments as $attachment_id) {
+            if ($optimizer->optimize_upload($attachment_id)) {
+                $processed++;
+                $last_file = get_the_title($attachment_id);
+                
+                $original = get_post_meta($attachment_id, 'iop_original_size', true);
+                $optimized = get_post_meta($attachment_id, 'iop_optimized_size', true);
+                if ($original && $optimized) {
+                    $savings += ($original - $optimized);
+                }
             }
         }
+        
+        wp_send_json_success([
+            'processed' => ($batch * $batch_size) + $processed,
+            'total' => $total_unoptimized,
+            'complete' => (($batch * $batch_size) + $processed) >= $total_unoptimized,
+            'savings' => size_format($savings, 2),
+            'current_file' => $last_file
+        ]);
+        
+    } catch (Exception $e) {
+        wp_send_json_error($e->getMessage(), 500);
     }
-    
-    wp_send_json_success([
-        'processed' => ($batch * $batch_size) + $processed,
-        'total' => $total_unoptimized,
-        'complete' => (($batch * $batch_size) + $processed) >= $total_unoptimized,
-        'savings' => size_format($savings, 2),
-        'current_file' => $last_file
-    ]);
 }
 
 private function count_unoptimized_images() {
