@@ -94,11 +94,24 @@ jQuery(document).ready(function($) {
             $('#iop-backup-count').text(data.backups);
         },
 
-        showError(message) {
-            $('#iop-bulk-progress').hide();
-            $('#iop-start-bulk').prop('disabled', false);
-            alert(`${iop_vars.error}: ${message}`);
-        }
+showError(message) {
+    $('#iop-bulk-progress').hide();
+    $('#iop-start-bulk').prop('disabled', false);
+    
+    // Enhanced error display
+    const errorMessage = `
+        <div class="notice notice-error">
+            <p>${iop_vars.error}: ${message}</p>
+            <p>${iop_vars.error_advice}</p>
+        </div>
+    `;
+    
+    $('#iop-bulk-optimize-controls').prepend(errorMessage);
+    
+    setTimeout(() => {
+        $('.notice-error').fadeOut(1000);
+    }, 5000);
+}
     };
 
     iop.init();
