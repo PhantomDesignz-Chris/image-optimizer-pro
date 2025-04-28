@@ -39,16 +39,23 @@ class Optimizer_Ajax {
 }
 
 public function process_batch() {
-    check_ajax_referer('iop_nonce', 'nonce');
-    
-    if (!current_user_can('upload_files')) {
-        wp_send_json_error(__('Permission denied', 'image-optimizer-pro'), 403);
-    }
-
-    $batch = isset($_POST['batch']) ? absint($_POST['batch']) : 0;
-    $batch_size = isset($_POST['batch_size']) ? absint($_POST['batch_size']) : 5;
-    
     try {
+        // Verify nonce first
+        if (!isset($_POST['nonce']) {
+            throw new \Exception('Nonce verification failed');
+        }
+        
+        if (!wp_verify_nonce($_POST['nonce'], 'iop_nonce')) {
+            throw new \Exception('Invalid nonce');
+        }
+
+        if (!current_user_can('upload_files')) {
+            throw new \Exception('Permission denied');
+        }
+
+        $batch = isset($_POST['batch']) ? absint($_POST['batch']) : 0;
+        $batch_size = isset($_POST['batch_size']) ? absint($_POST['batch_size']) : 5;
+        
         $args = [
             'post_type' => 'attachment',
             'post_mime_type' => ['image/jpeg', 'image/png'],
@@ -103,8 +110,8 @@ public function process_batch() {
             'current_file' => $last_file
         ]);
         
-    } catch (Exception $e) {
-        wp_send_json_error($e->getMessage(), 500);
+    } catch (\Exception $e) {
+        wp_send_json_error($e->getMessage(), 400);
     }
 }
 
