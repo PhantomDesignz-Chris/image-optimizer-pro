@@ -2,6 +2,30 @@
 namespace Image_Optimizer_Pro;
 
 class Optimizer_Stats {
+ // Add this method:
+    public static function display_stats_summary() {
+        $stats = self::get_total_stats();
+        ?>
+        <div class="iop-stats-card">
+            <h3><?php _e('Optimization Summary', 'image-optimizer-pro'); ?></h3>
+            <div class="iop-stats-grid">
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo number_format($stats['total_images']); ?></div>
+                    <div class="iop-stat-label"><?php _e('Images Processed', 'image-optimizer-pro'); ?></div>
+                </div>
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo size_format($stats['total_savings'], 2); ?></div>
+                    <div class="iop-stat-label"><?php _e('Total Savings', 'image-optimizer-pro'); ?></div>
+                </div>
+                <div class="iop-stat-item">
+                    <div class="iop-stat-value"><?php echo number_format($stats['savings_percent'], 2); ?>%</div>
+                    <div class="iop-stat-label"><?php _e('Average Reduction', 'image-optimizer-pro'); ?></div>
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+    
     public function __construct() {
         add_action('admin_init', [$this, 'export_stats']);
     }
