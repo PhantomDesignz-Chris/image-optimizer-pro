@@ -1,14 +1,3 @@
-Missing Classes:
-Array
-(
-    [0] => Image_Optimizer
-)
+Warning: require_once(/www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/includes/class-image-optimizer-pro-optimize.php): Failed to open stream: No such file or directory in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php on line 30
 
-
-Debug Info:
-Plugin Path: /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/
-
-Checking: class-image-optimizer.php
-Exists: Yes
-First line: <?php
-Image Optimizer Pro Error: Image_Optimizer class not found. Check file naming and namespace.
+Fatal error: Uncaught Error: Failed opening required '/www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/includes/class-image-optimizer-pro-optimize.php' (include_path='.:/usr/share/php') in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php:30 Stack trace: #0 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php(24): Image_Optimizer->includes() #1 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php(18): Image_Optimizer->__construct() #2 /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php(85): Image_Optimizer::get_instance() #3 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(324): image_optimizer_pro_init('') #4 /www/thepayrolledge_435/public/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters(NULL, Array) #5 /www/thepayrolledge_435/public/wp-includes/plugin.php(517): WP_Hook->do_action(Array) #6 /www/thepayrolledge_435/public/wp-settings.php(578): do_action('plugins_loaded') #7 /www/thepayrolledge_435/public/wp-config.php(107): require_once('/www/thepayroll...') #8 /www/thepayrolledge_435/public/wp-load.php(50): require_once('/www/thepayroll...') #9 /www/thepayrolledge_435/public/wp-admin/admin.php(35): require_once('/www/thepayroll...') #10 /www/thepayrolledge_435/public/wp-admin/index.php(10): require_once('/www/thepayroll...') #11 {main} thrown in /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/includes/class-image-optimizer.php on line 30
