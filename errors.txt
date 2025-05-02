@@ -1,1 +1,14 @@
-Error occurred: Not a JPEG file: starts with 0x30 0x30 `/www/thepayrolledge_435/public/wp-content/uploads/2024/12/pe-hero-resized-350-1.jpg' @ error/jpeg.c/JPEGErrorHandler/356
+Missing Classes:
+Array
+(
+    [0] => Image_Optimizer
+)
+
+
+Debug Info:
+Plugin Path: /www/thepayrolledge_435/public/wp-content/plugins/image-optimizer-pro/
+
+Checking: class-image-optimizer.php
+Exists: Yes
+First line: <?php
+Image Optimizer Pro Error: Image_Optimizer class not found. Check file naming and namespace.
