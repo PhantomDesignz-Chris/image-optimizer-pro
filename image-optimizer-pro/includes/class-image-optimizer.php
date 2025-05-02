@@ -1,70 +1,92 @@
 <?php
+/**
+ * Main plugin class
+ */
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-class Image_Optimizer_Pro_Optimize {
-    private $quality;
-    private $preserve_metadata;
+class Image_Optimizer {
+    private static $instance;
+    public $optimize;
+    public $restore;
+    public $admin;
+    public $settings;
 
-    public function __construct($quality = 80, $preserve_metadata = false) {
-        $this->quality = $quality;
-        $this->preserve_metadata = $preserve_metadata;
+    public static function get_instance() {
+        if (!isset(self::$instance)) {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 
-    public function optimize_image($attachment_id, $force = false) {
-        if (!wp_attachment_is_image($attachment_id)) {
-            return new WP_Error('not_an_image', __('The specified attachment is not an image.', 'image-optimizer-pro'));
-        }
+    private function __construct() {
+        $this->includes();
+        $this->init_components();
+        $this->setup_hooks();
+    }
 
-        if (!$force && get_post_meta($attachment_id, '_image_optimizer_pro_optimized', true)) {
-            return new WP_Error('already_optimized', __('The image has already been optimized.', 'image-optimizer-pro'));
-        }
+    private function includes() {
+        require_once plugin_dir_path(__FILE__) . 'includes/class-image-optimizer-pro-optimize.php';
+        require_once plugin_dir_path(__FILE__) . 'includes/class-image-optimizer-pro-restore.php';
+        require_once plugin_dir_path(__FILE__) . 'admin/class-image-optimizer-pro-admin.php';
+        require_once plugin_dir_path(__FILE__) . 'includes/class-image-optimizer-pro-settings.php';
+    }
 
-        $file_path = get_attached_file($attachment_id);
+    private function init_components() {
+        $quality = get_option('image_optimizer_pro_quality', 80);
+        $preserve_metadata = get_option('image_optimizer_pro_preserve_metadata', false);
+
+        $this->optimize = new Image_Optimizer_Pro_Optimize($quality, $preserve_metadata);
+        $this->restore = new Image_Optimizer_Pro_Restore();
+        $this->admin = new Image_Optimizer_Pro_Admin();
+        $this->settings = new Image_Optimizer_Pro_Settings();
+    }
+
+    private function setup_hooks() {
+        add_action('admin_init', array($this, 'check_image_library'));
+        register_activation_hook(__FILE__, array($this, 'activate'));
+        register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+    }
+
+    public function check_image_library() {
+        if (!extension_loaded('gd') && !extension_loaded('imagick')) {
+            add_action('admin_notices', function() {
+                echo '<div class="error"><p>';
+                _e('Image Optimizer Pro requires either GD or Imagick PHP extension to function.', 'image-optimizer-pro');
+                echo '</p></div>';
+            });
+        }
+    }
+
+    public function activate() {
+        // Create necessary directories
+        $upload_dir = wp_upload_dir();
+        $backup_dir = $upload_dir['basedir'] . '/image-optimizer-pro-backups/';
         
-        // ====== FIX ADDED STARTS ======
-        $backup_dir = wp_upload_dir()['basedir'] . '/image-optimizer-pro-backups/';
         if (!file_exists($backup_dir)) {
             wp_mkdir_p($backup_dir);
         }
-        $backup_path = $backup_dir . basename($file_path);
-        
-        if (!file_exists($backup_path)) {
-            copy($file_path, $backup_path);
-        }
-        // ====== FIX ADDED ENDS ======
 
-        $original_size = filesize($file_path);
-        $optimized = $this->compress_image($file_path);
-
-        if (is_wp_error($optimized)) {
-            return $optimized;
-        }
-
-        $optimized_size = filesize($file_path);
-
-        // ====== FIX ADDED STARTS ======
-        if ($original_size > 0 && $optimized_size > 0) {
-            $savings = $original_size - $optimized_size;
-            update_post_meta($attachment_id, '_image_optimizer_pro_savings', $savings);
-            update_post_meta($attachment_id, '_image_optimizer_pro_optimized', true);
-            update_post_meta($attachment_id, '_image_optimizer_pro_optimized_size', $optimized_size);
-        } else {
-            $savings = 0;
-        }
-        // ====== FIX ADDED ENDS ======
-
-        return array(
-            'original_size' => $original_size,
-            'optimized_size' => $optimized_size,
-            'savings' => $savings,
-            'success' => true
-        );
+        // Set default options if not exists
+        add_option('image_optimizer_pro_quality', 80);
+        add_option('image_optimizer_pro_preserve_metadata', false);
     }
 
-    private function compress_image($file_path) {
-        // ... (keep all existing compression code unchanged) ...
+    public function deactivate() {
+        // Cleanup options if needed
+        // delete_option('image_optimizer_pro_quality');
+        // delete_option('image_optimizer_pro_preserve_metadata');
     }
 }
-?>
+
+// Initialize the plugin
+function image_optimizer_pro_init() {
+    return Image_Optimizer::get_instance();
+}
+add_action('plugins_loaded', 'image_optimizer_pro_init');
+
+// Global helper function
+function image_optimizer_pro() {
+    return Image_Optimizer::get_instance();
+}
